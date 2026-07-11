@@ -1,0 +1,79 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model DailyLog {
+  id                String   @id @default(cuid())
+  date              DateTime @unique @db.Date
+  githubContributed Boolean  @default(false)
+  githubCount       Int      @default(0)
+  leetcodeSolved    Int      @default(0)
+  waterGlasses      Int      @default(0)
+  waterTarget       Int      @default(8)
+  gymDone           Boolean  @default(false)
+  readingPages      Int      @default(0)
+  mainTaskTitle     String?
+  mainTaskDone      Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model RoadmapTrack {
+  id          String         @id @default(cuid())
+  name        String
+  slug        String         @unique
+  nodes       RoadmapNode[]
+  order       Int
+}
+
+model RoadmapNode {
+  id          String       @id @default(cuid())
+  trackId     String
+  track       RoadmapTrack @relation(fields: [trackId], references: [id])
+  title       String       // e.g. "PyTorch Fundamentals", "CNN"
+  status      String       @default("not_started") // not_started | in_progress | done
+  order       Int
+  notes       String?
+  updatedAt   DateTime     @updatedAt
+}
+
+model Settings {
+  id               String  @id @default("singleton")
+  githubUsername   String
+  leetcodeUsername String
+  waterTarget      Int     @default(8)
+  leetcodeTarget   Int     @default(1)
+  readingTarget    Int     @default(2)
+  githubRequired   Boolean @default(true)
+  leetcodeRequired Boolean @default(true)
+  waterRequired    Boolean @default(true)
+  gymRequired      Boolean @default(true)
+  readingRequired  Boolean @default(true)
+  mainTaskRequired Boolean @default(true)
+}
+
+model CustomRequirement {
+  id        String      @id @default(cuid())
+  name      String
+  type      String      // "boolean" | "numeric"
+  targetVal Float       @default(1.0)
+  required  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  logs      CustomLog[]
+}
+
+model CustomLog {
+  id             String            @id @default(cuid())
+  date           DateTime          @db.Date
+  requirementId  String
+  requirement    CustomRequirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  value          Float             // 1.0 or 0.0 for checkbox, logged amount for numeric
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([date, requirementId])
+}
