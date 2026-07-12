@@ -7,7 +7,7 @@ import { ResponsiveContainer, RadialBarChart, RadialBar, PolarAngleAxis } from "
 import { 
   Flame, GlassWater, Trophy, Check, Loader2, Plus, Minus, Dumbbell, 
   BookOpen, Code, Github, Sparkles, HelpCircle, SlidersHorizontal, Compass,
-  ArrowRight
+  ArrowRight, RefreshCw
 } from "lucide-react";
 
 const cormorant = Cormorant_Garamond({
@@ -59,6 +59,7 @@ export default function DashboardPage() {
   const [requirements, setRequirements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showInputs, setShowInputs] = useState(false);
   const [tracks, setTracks] = useState<any[]>([]);
@@ -112,9 +113,28 @@ export default function DashboardPage() {
           const roadmapData = await roadmapRes.json();
           setTracks(roadmapData);
         }
+
+        // Trigger background sync of LeetCode and GitHub contributions
+        setSyncing(true);
+        const syncRes = await fetch("/api/sync", { method: "POST" });
+        if (syncRes.ok) {
+          const syncData = await syncRes.json();
+          if (syncData.success) {
+            if (syncData.todayLog) {
+              setTodayLog(prev => prev ? { ...prev, ...syncData.todayLog } : syncData.todayLog);
+            }
+            // Reload grids to instantly reflect synced contributions on heatmaps
+            const newGridsRes = await fetch("/api/grids");
+            if (newGridsRes.ok) {
+              const newGridsData = await newGridsRes.json();
+              setGridsData(newGridsData);
+            }
+          }
+        }
       } catch (error) {
         console.error("Dashboard fetch error:", error);
       } finally {
+        setSyncing(false);
         setLoading(false);
       }
     }
@@ -152,6 +172,32 @@ export default function DashboardPage() {
       console.error("Failed to save daily log:", err);
     } finally {
       setSaving(false);
+    }
+  };
+  
+  const handleManualSync = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      const syncRes = await fetch("/api/sync", { method: "POST" });
+      if (syncRes.ok) {
+        const syncData = await syncRes.json();
+        if (syncData.success) {
+          if (syncData.todayLog) {
+            setTodayLog(prev => prev ? { ...prev, ...syncData.todayLog } : syncData.todayLog);
+          }
+          // Reload grids to instantly reflect synced contributions on heatmaps
+          const newGridsRes = await fetch("/api/grids");
+          if (newGridsRes.ok) {
+            const newGridsData = await newGridsRes.json();
+            setGridsData(newGridsData);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to run manual sync:", err);
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -309,7 +355,7 @@ export default function DashboardPage() {
                 <Code className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
                 LeetCode Grid
               </h2>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Manual Log</span>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Automatic Pull</span>
             </div>
             <div className="flex">
               {/* Day Labels */}
@@ -612,14 +658,21 @@ export default function DashboardPage() {
                     <Code className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
                     LeetCode Solved
                   </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={todayLog.leetcodeSolved}
-                    onChange={(e) => setTodayLog({ ...todayLog, leetcodeSolved: parseInt(e.target.value, 10) || 0 })}
-                    className="w-full rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-[#121212]/20 px-3 py-2 text-sm text-slate-900 dark:text-[#f4efe6] placeholder-slate-400 dark:placeholder-slate-500 focus:border-slate-300 dark:focus:border-white/35 focus:bg-white dark:focus:bg-[#121212]/40 focus:outline-none focus:ring-1 focus:ring-slate-200 dark:focus:ring-white/10 transition-all duration-150"
-                    placeholder="0"
-                  />
+                  <div className="flex items-center gap-2">
+                    <div className="w-full flex items-center justify-between border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-[#121212]/20 rounded-lg h-[38px] px-3 text-sm text-slate-900 dark:text-[#f4efe6]">
+                      <span className="font-semibold">{todayLog.leetcodeSolved} solved</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">Auto-synced</span>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={syncing}
+                      onClick={handleManualSync}
+                      className="flex h-[38px] w-[38px] items-center justify-center rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 transition-colors shrink-0 disabled:opacity-50"
+                      title="Sync LeetCode and GitHub contributions"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Custom Requirements Inputs */}

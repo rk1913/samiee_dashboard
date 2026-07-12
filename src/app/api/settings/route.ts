@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { syncGitHubContributions } from "@/lib/github-sync";
+import { syncLeetCodeSubmissions } from "@/lib/leetcode-sync";
 import { ensureDbInitialized } from "@/lib/db-init";
 
 export async function GET() {
@@ -90,9 +91,18 @@ export async function POST(request: Request) {
       console.warn("Skipping GitHub sync because GITHUB_TOKEN is placeholder or not set.");
     }
 
+    // Trigger LeetCode sync immediately to backfill submission history
+    let leetcodeSyncResult = null;
+    try {
+      leetcodeSyncResult = await syncLeetCodeSubmissions(leetcodeUsername);
+    } catch (err) {
+      console.error("Failed to execute initial LeetCode sync:", err);
+    }
+
     return NextResponse.json({
       settings,
       sync: syncResult || { success: false, error: "GITHUB_TOKEN not configured" },
+      leetcodeSync: leetcodeSyncResult || { success: false, error: "Failed to sync LeetCode" },
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to save settings" }, { status: 500 });

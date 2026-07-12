@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { syncGitHubContributions } from "@/lib/github-sync";
+import { syncLeetCodeSubmissions } from "@/lib/leetcode-sync";
 
 async function handleSync(request: Request) {
   try {
@@ -23,16 +24,35 @@ async function handleSync(request: Request) {
       where: { id: "singleton" },
     });
 
-    if (!settings || !settings.githubUsername) {
-      return NextResponse.json({ error: "GitHub username not configured in settings" }, { status: 400 });
+    if (!settings) {
+      return NextResponse.json({ error: "Settings not configured" }, { status: 400 });
     }
 
-    const syncResult = await syncGitHubContributions(settings.githubUsername);
-    if (!syncResult.success) {
-      return NextResponse.json({ error: syncResult.error || "GitHub sync failed" }, { status: 500 });
+    let githubCount = 0;
+    if (settings.githubUsername) {
+      const syncResult = await syncGitHubContributions(settings.githubUsername);
+      if (syncResult.success) {
+        githubCount = syncResult.count;
+      } else {
+        console.error("Cron: GitHub sync failed:", syncResult.error);
+      }
     }
 
-    return NextResponse.json({ success: true, count: syncResult.count });
+    let leetcodeCount = 0;
+    if (settings.leetcodeUsername) {
+      const syncResult = await syncLeetCodeSubmissions(settings.leetcodeUsername);
+      if (syncResult.success) {
+        leetcodeCount = syncResult.count;
+      } else {
+        console.error("Cron: LeetCode sync failed:", syncResult.error);
+      }
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      githubSynced: githubCount,
+      leetcodeSynced: leetcodeCount
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Cron execution failed" }, { status: 500 });
   }

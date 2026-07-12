@@ -80,7 +80,6 @@ export async function POST(request: Request) {
     const log = await prisma.dailyLog.upsert({
       where: { date: todayDate },
       update: {
-        leetcodeSolved,
         waterGlasses,
         readingPages,
         gymDone,
@@ -90,7 +89,7 @@ export async function POST(request: Request) {
       },
       create: {
         date: todayDate,
-        leetcodeSolved,
+        leetcodeSolved: 0,
         waterGlasses,
         readingPages,
         gymDone,
