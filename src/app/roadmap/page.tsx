@@ -85,10 +85,10 @@ export default function RoadmapPage() {
     else if (node.status === "in_progress") nextStatus = "done";
 
     try {
-      const res = await fetch(`/api/roadmap?nodeId=${nodeId}`, {
+      const res = await fetch(`/api/roadmap`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus }),
+        body: JSON.stringify({ nodeId }),
       });
 
       if (res.ok) {
