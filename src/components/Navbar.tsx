@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutGrid, Compass, Settings, LogOut, ArrowLeft, Sun, Moon } from "lucide-react";
+import { LayoutGrid, Compass, Settings, LogOut, ArrowLeft, Sun, Moon, CheckCircle2 } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -41,6 +41,7 @@ export default function Navbar() {
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutGrid },
+    { name: "Tasks", href: "/tasks", icon: CheckCircle2 },
     { name: "Roadmap", href: "/roadmap", icon: Compass },
     { name: "Settings", href: "/settings", icon: Settings },
   ];

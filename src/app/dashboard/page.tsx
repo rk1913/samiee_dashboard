@@ -7,7 +7,7 @@ import { ResponsiveContainer, RadialBarChart, RadialBar, PolarAngleAxis } from "
 import { 
   Flame, GlassWater, Trophy, Check, Loader2, Plus, Minus, Dumbbell, 
   BookOpen, Code, Github, Sparkles, HelpCircle, SlidersHorizontal, Compass,
-  ArrowRight, RefreshCw, Trash2
+  ArrowRight, RefreshCw
 } from "lucide-react";
 
 const cormorant = Cormorant_Garamond({
@@ -65,8 +65,6 @@ export default function DashboardPage() {
   const [tracks, setTracks] = useState<any[]>([]);
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
-  const [todos, setTodos] = useState<any[]>([]);
-  const [newTodoText, setNewTodoText] = useState("");
 
   // Hover Tooltip state
   const [hoveredDay, setHoveredDay] = useState<GridDay | null>(null);
@@ -116,12 +114,6 @@ export default function DashboardPage() {
           setTracks(roadmapData);
         }
 
-        // Fetch Daily Todos
-        const todosRes = await fetch("/api/todos");
-        if (todosRes.ok) {
-          const todosData = await todosRes.json();
-          setTodos(todosData);
-        }
 
         // Trigger background sync of LeetCode and GitHub contributions
         setSyncing(true);
@@ -207,78 +199,6 @@ export default function DashboardPage() {
       console.error("Failed to run manual sync:", err);
     } finally {
       setSyncing(false);
-    }
-  };
-
-  // Handle adding a new todo
-  const handleAddTodo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTodoText.trim()) return;
-
-    try {
-      const res = await fetch("/api/todos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: newTodoText }),
-      });
-
-      if (res.ok) {
-        const newTodo = await res.json();
-        setTodos((prev) => [...prev, newTodo]);
-        setNewTodoText("");
-      }
-    } catch (err) {
-      console.error("Failed to add todo:", err);
-    }
-  };
-
-  // Handle toggling completion
-  const handleToggleTodo = async (id: string, completed: boolean) => {
-    // Optimistic update
-    setTodos((prev) =>
-      prev.map((todo) => (todo.id === id ? { ...todo, completed } : todo))
-    );
-
-    try {
-      const res = await fetch("/api/todos", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, completed }),
-      });
-
-      if (!res.ok) {
-        // Revert on error
-        const todosRes = await fetch("/api/todos");
-        if (todosRes.ok) {
-          const todosData = await todosRes.json();
-          setTodos(todosData);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to toggle todo:", err);
-    }
-  };
-
-  // Handle deleting a todo
-  const handleDeleteTodo = async (id: string) => {
-    // Optimistic update
-    setTodos((prev) => prev.filter((todo) => todo.id !== id));
-
-    try {
-      const res = await fetch(`/api/todos?id=${id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        // Revert on error
-        const todosRes = await fetch("/api/todos");
-        if (todosRes.ok) {
-          const todosData = await todosRes.json();
-          setTodos(todosData);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to delete todo:", err);
     }
   };
 
@@ -665,116 +585,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Daily Tasks Todo List */}
-        {todayLog && (
-          <div className="mt-8 space-y-4">
-            <h3 className="text-xs font-bold text-slate-700 dark:text-[#f4efe6]/85 uppercase tracking-wider flex items-center gap-2 select-none px-1">
-              <Check className="h-3.5 w-3.5 text-emerald-500" />
-              Daily Tasks Checklist
-            </h3>
 
-            <div className="rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#1c1c1e]/80 dark:backdrop-blur-xl p-5 shadow-sm dark:shadow-none relative overflow-hidden select-none">
-              {/* Header / Stats */}
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#10b981] dark:text-emerald-400">
-                    Tasks Progress
-                  </span>
-                  <p className="text-sm font-semibold mt-0.5 tracking-tight text-slate-800 dark:text-[#f4efe6]">
-                    {todos.filter((todo) => todo.completed).length} of {todos.length} works completed
-                  </p>
-                </div>
-                <span className="text-lg font-extrabold text-slate-900 dark:text-[#f4efe6] bg-slate-50 dark:bg-white/5 px-2.5 py-1 rounded-xl">
-                  {todos.length > 0 ? Math.round((todos.filter((todo) => todo.completed).length / todos.length) * 100) : 0}%
-                </span>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="w-full h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden mb-6">
-                <div 
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(16,185,129,0.4)]"
-                  style={{ width: `${todos.length > 0 ? Math.round((todos.filter((todo) => todo.completed).length / todos.length) * 100) : 0}%` }}
-                />
-              </div>
-
-              {/* Todo List Items */}
-              {todos.length > 0 ? (
-                <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1 custom-scrollbar mb-6">
-                  {todos.map((todo) => (
-                    <div
-                      key={todo.id}
-                      className={`flex items-center justify-between gap-3 p-3 rounded-xl border transition-all duration-200 ${
-                        todo.completed
-                          ? "border-emerald-100/50 dark:border-emerald-500/10 bg-emerald-50/10 dark:bg-emerald-950/5 opacity-75"
-                          : "border-slate-100 dark:border-white/[0.04] bg-slate-50/30 dark:bg-white/[0.01] hover:border-slate-200 dark:hover:border-white/10"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        {/* Custom Checkbox */}
-                        <button
-                          type="button"
-                          onClick={() => handleToggleTodo(todo.id, !todo.completed)}
-                          className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 transition-all duration-250 ${
-                            todo.completed
-                              ? "bg-emerald-500 border-emerald-500 text-white"
-                              : "border-slate-300 hover:border-slate-400 dark:border-white/15 dark:hover:border-white/25"
-                          }`}
-                        >
-                          {todo.completed && <Check className="h-3 w-3 stroke-[3]" />}
-                        </button>
-
-                        {/* Text */}
-                        <span
-                          className={`text-xs font-medium tracking-tight truncate flex-1 transition-all duration-200 ${
-                            todo.completed
-                              ? "text-slate-400 dark:text-slate-500 line-through decoration-emerald-500/20"
-                              : "text-slate-700 dark:text-[#f4efe6]/90"
-                          }`}
-                        >
-                          {todo.text}
-                        </span>
-                      </div>
-
-                      {/* Delete button */}
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteTodo(todo.id)}
-                        className="text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shrink-0"
-                        title="Delete task"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-6 border border-dashed border-slate-200 dark:border-white/5 rounded-xl mb-6 bg-slate-50/20 dark:bg-white/[0.005]">
-                  <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-                    No works planned for today yet.
-                  </p>
-                </div>
-              )}
-
-              {/* Add Task Input Form */}
-              <form onSubmit={handleAddTodo} className="flex gap-2">
-                <input
-                  type="text"
-                  value={newTodoText}
-                  onChange={(e) => setNewTodoText(e.target.value)}
-                  placeholder="What work do you want to do today?"
-                  className="flex-1 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-[#121212]/20 px-3.5 py-2 text-xs text-slate-900 dark:text-[#f4efe6] placeholder-slate-400 dark:placeholder-slate-500 focus:border-slate-300 dark:focus:border-white/35 focus:outline-none focus:ring-1 focus:ring-slate-200 dark:focus:ring-white/10 transition-all"
-                />
-                <button
-                  type="submit"
-                  disabled={!newTodoText.trim()}
-                  className="shrink-0 flex items-center justify-center h-[36px] w-[36px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-sm transition disabled:opacity-50"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
 
         {/* Streak and Inputs Row */}
         {todayLog && (
