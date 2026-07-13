@@ -77,3 +77,14 @@ model CustomLog {
 
   @@unique([date, requirementId])
 }
+
+model Todo {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  text      String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+}

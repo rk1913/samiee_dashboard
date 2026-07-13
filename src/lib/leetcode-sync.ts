@@ -54,12 +54,34 @@ export async function syncLeetCodeSubmissions(username: string): Promise<{ succe
 
     console.log(`Found ${daysToUpsert.length} days of LeetCode submissions to sync.`);
 
+    // Fetch all existing logs for the dates to check if changes are needed
+    const dates = daysToUpsert.map(d => new Date(`${d.dateStr}T00:00:00.000Z`));
+    const existingLogs = await prisma.dailyLog.findMany({
+      where: {
+        date: { in: dates }
+      }
+    });
+
+    const existingLogsMap = new Map<string, typeof existingLogs[0]>();
+    for (const log of existingLogs) {
+      const dateStr = log.date.toISOString().split("T")[0];
+      existingLogsMap.set(dateStr, log);
+    }
+
+    const changedDays = daysToUpsert.filter(day => {
+      const existing = existingLogsMap.get(day.dateStr);
+      if (!existing) return true;
+      return existing.leetcodeSolved !== day.count;
+    });
+
+    console.log(`Only ${changedDays.length} of ${daysToUpsert.length} days of LeetCode submissions actually changed and need syncing.`);
+
     // Perform batched upserts to avoid overloading the DB connections
     const batchSize = 25;
     let successCount = 0;
 
-    for (let i = 0; i < daysToUpsert.length; i += batchSize) {
-      const batch = daysToUpsert.slice(i, i + batchSize);
+    for (let i = 0; i < changedDays.length; i += batchSize) {
+      const batch = changedDays.slice(i, i + batchSize);
       await Promise.all(
         batch.map(async (day) => {
           const dateObj = new Date(`${day.dateStr}T00:00:00.000Z`);
