@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Safeguard: Check if this is an exempted route
@@ -33,7 +33,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Apply middleware to all routes except public API endpoints and assets
+    // Apply proxy to all routes except public API endpoints and assets
     "/((?!api/cron/sync|api/login|_next/static|_next/image|favicon.ico|login).*)",
   ],
 };
