@@ -283,7 +283,7 @@ export default function DashboardPage() {
       
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Apple-style Dashboard Branding Header (SAMIEE Serif Showcase) */}
+        {/* Apple-style Dashboard Branding Header (SAMMIE Serif Showcase) */}
         <div className="flex justify-center select-none pt-4 pb-10">
           <div className="relative py-8 px-4 w-fit select-none">
             {/* Top Left Metadata Info */}
@@ -296,7 +296,7 @@ export default function DashboardPage() {
 
             {/* Main Title text (Ivory / warm-off-white in dark mode, charcoal in light mode) */}
             <h1 className={`text-4xl sm:text-5xl md:text-6xl font-bold tracking-widest text-slate-800 dark:text-[#f4efe6] leading-none select-none relative z-10 uppercase transition-colors duration-200 ${cormorant.className}`}>
-              Samiee
+              Sammie
             </h1>
 
             {/* Frosted Glass Overlay Capsule 1 (Bottom Left) */}

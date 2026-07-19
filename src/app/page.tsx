@@ -27,7 +27,7 @@ export default function LandingPage() {
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
           <span className={`text-sm font-semibold tracking-wider uppercase text-[#f4efe6]/90 ${cormorant.className}`}>
-            Samiee
+            Sammie
           </span>
         </div>
       </header>
@@ -48,7 +48,7 @@ export default function LandingPage() {
 
           {/* Main Title text (Ivory / warm-off-white) */}
           <h1 className={`text-7xl sm:text-8xl md:text-[8rem] lg:text-[11rem] font-bold tracking-widest text-[#f4efe6] leading-none select-none relative z-10 uppercase ${cormorant.className}`}>
-            Samiee
+            Sammie
           </h1>
 
           {/* Frosted Glass Overlay Capsule 1 (Bottom Left) */}
@@ -84,7 +84,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="relative z-30 flex flex-col sm:flex-row items-center justify-between w-full max-w-7xl mx-auto text-[10px] tracking-wider text-[#f4efe6]/40 gap-2">
         <div>
-          <span>© 2026 SAMIEE. ALL RIGHTS RESERVED.</span>
+          <span>© 2026 SAMMIE. ALL RIGHTS RESERVED.</span>
         </div>
         <div className="flex items-center gap-1.5 select-none">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
